@@ -16,22 +16,22 @@ double uemax   = 0.02; 		// define mesh adaption criterion
 double MU0 = 1.08e-3;//3.258e-3; 		// dynamic viscosity
 /*double maxruntime = 1438;  just less than 24 hours in minutes */
 double maxruntime = 700; 	// just less than 12 hours in minutes
-double WIDTH = 5;
-double MONIT = 2.45;
+double WIDTH = 7;
+double MONIT = 3.45;
 
 //scalar * tracers = {trac};
 
 /* boundary conditions for velocity with unit velocity on the left-hand side and outflow on the right-hand side  */
 
-u.n[top]  = dirichlet(0.33);
-p[top]    = neumann(0.);
-pf[top]   = neumann(0.);
+u.n[left]  = dirichlet(0.33);
+p[left]    = neumann(0.);
+pf[left]   = neumann(0.);
 //trac[left]  = dirichlet(y<0);
 //trac[left]  = dirichlet(0.33);
 
-u.n[bottom] = neumann(0.);
-p[bottom]   = dirichlet(0.);
-pf[bottom]  = dirichlet(0.);
+u.n[right] = neumann(0.);
+p[right]   = dirichlet(0.);
+pf[right]  = dirichlet(0.);
 
 int main (/*int argc, char *argv[]*/) {
 
@@ -60,7 +60,8 @@ event init (t = 0) {
     fraction (f, sq(x) + sq(y - Z0) + sq(z) - sq(.5));
   }
 */
-  coord * p = input_stl (fopen ("sphere.stl","r"));//"omg_glider_final_2_5degree_trans_flip_binary.stl", "r"));
+  //coord * p = input_stl (fopen ("sphere.stl","r"));
+  coord * p = input_stl (fopen ("omg_glider_final_2_5degree_trans_flip_binary.stl", "r"));
 /* coord min, max;
    bounding_box (p, &min, &max);  
    double maxl = -HUGE;
@@ -84,7 +85,7 @@ event init (t = 0) {
   while (adapt_wavelet ({d}, (double[]){1e-4}, LEVEL).nf);
  
   foreach()
-  u.x[] = 0;//.33; // 1.;
+  u.x[] = 0.33; // 1.;
                 }
   else {
   fprintf(ferr,"restarting\n"); 
