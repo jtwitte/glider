@@ -15,8 +15,8 @@ int    LEVEL   = 12; 		// define grid resolution
 double uemax   = 0.02; 		// define mesh adaption criterion
 double MU0 = 1.08e-3; 		// dynamic viscosity
 double maxruntime = 700; 	// just less than 12 hours in minutes
-double WIDTH = 6;
-double MONIT = 2.95;
+double WIDTH = 5;
+double MONIT = 2.45;
 
 //scalar * tracers = {trac};
 
@@ -53,8 +53,9 @@ event init (t = 0) {
   if (!restore (file = "restart")) {
   fprintf(ferr,"initialising\n");
 
-  //coord * p = input_stl (fopen ("sphere.stl","r"));
-  coord * p = input_stl (fopen ("omg_glider_final_2_5degree_trans_flip_binary.stl", "r"));
+  // coord * p = input_stl (fopen ("sphere.stl","r"));
+  // coord * p = input_stl (fopen ("omg_glider_final_2_5degree_trans_flip_binary.stl", "r"));
+  coord * p = input_stl (fopen ("omg_glider_probe_final_2_5degree_trans_flip_binary.stl","r"));
 
   init_grid (8);
   size (WIDTH);
