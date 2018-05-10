@@ -6,18 +6,17 @@
 #include "lambda2.h"
 //#include "tracer.h"
 
-scalar f[], d[]; // make a global field
+scalar f[], d[];		 // make a global field
 //scalar trac[];
 vertex scalar phi[];
 face vector s[];
 
 int    LEVEL   = 12; 		// define grid resolution
 double uemax   = 0.02; 		// define mesh adaption criterion
-double MU0 = 1.08e-3;//3.258e-3; 		// dynamic viscosity
-/*double maxruntime = 1438;  just less than 24 hours in minutes */
+double MU0 = 1.08e-3; 		// dynamic viscosity
 double maxruntime = 700; 	// just less than 12 hours in minutes
-double WIDTH = 7;
-double MONIT = 3.45;
+double WIDTH = 6;
+double MONIT = 2.95;
 
 //scalar * tracers = {trac};
 
@@ -33,8 +32,7 @@ u.n[right] = neumann(0.);
 p[right]   = dirichlet(0.);
 pf[right]  = dirichlet(0.);
 
-int main (/*int argc, char *argv[]*/) {
-
+int main () {
 /* kinametic viscosity of water 1.05x10^-6 m^2 s^-1 at 20 degrees*/
 /* kinametic viscosity of water 1.83x10^-6 m^2 s^-1 at 0 degrees*/
 /* dynamic viscosity (MU0) of water 1.08 × 10−3 Pa s at 20 degrees*/
@@ -43,7 +41,7 @@ int main (/*int argc, char *argv[]*/) {
 /* actual Re = l*V/v , 1.8*0.33./1.05x10^-6 = 5.65714e5 */
 /* use v= 1.8*1./ 5.65714e5 = 3.1818*10^-6 */
 /* use MU0 = v * density = 3.1818*10^-6 * 1024 = 3.258e-3 */
-  const face vector muc[] = { 1.05e-6 , 1.05e-6, 1.05e-6 }; // { 3.1818e-6, 3.1818e-6, 1.1818e-6 };
+  const face vector muc[] = { 1.05e-6 , 1.05e-6, 1.05e-6 };
   mu = muc;
 
   run();
@@ -55,37 +53,18 @@ event init (t = 0) {
   if (!restore (file = "restart")) {
   fprintf(ferr,"initialising\n");
 
-/*if (!restore (file = "restart")) {
-    refine (sq(x) + sq(y - Z0) + sq(z) - sq(0.75) < 0 && level < LEVEL);
-    fraction (f, sq(x) + sq(y - Z0) + sq(z) - sq(.5));
-  }
-*/
   //coord * p = input_stl (fopen ("sphere.stl","r"));
   coord * p = input_stl (fopen ("omg_glider_final_2_5degree_trans_flip_binary.stl", "r"));
-/* coord min, max;
-   bounding_box (p, &min, &max);  
-   double maxl = -HUGE;
-   foreach_dimension()
-     if (max.x - min.x > maxl)
-       maxl = max.x - min.x;
-*/  
 
   init_grid (8);
   size (WIDTH);
-/*  fprintf(ferr,"%f  (max.x+min.x)/2. - L0/2. \n", (max.x+min.x)/2. - L0/2.);
-    fprintf(ferr,"%f  (max.x+min.y)/2. - L0/2. \n", (max.y+min.y)/2. - L0/2);
-    fprintf(ferr,"%f  (max.z+min.z)/2. - L0/2. \n", (max.z+min.z)/2. - L0/2);
- 
-   origin ((max.x + min.x)/2. - L0/2,          
- * 	    (max.y + min.y)/2. - L0/2,
- *  	    (max.z + min.z)/2. - L0/2); */
   origin( -L0/2, -L0/2., -L0/2. );
   distance (d, p);
 
   while (adapt_wavelet ({d}, (double[]){1e-4}, LEVEL).nf);
  
   foreach()
-  u.x[] = 0.33; // 1.;
+  u.x[] = 0.33;
                 }
   else {
   fprintf(ferr,"restarting\n"); 
@@ -97,10 +76,8 @@ event init (t = 0) {
 event glider (i++) {
   fprintf(ferr,"define zero velocity inside geometry\n"); 
   coord vc = {0.,0.,0.};			// the velocity of the glider
- 
-/* recalculate the fraction field at each time step or the geometry goes gets very noisy*/
 
-  foreach_vertex()
+  foreach_vertex() 				//recalculate the fraction field at each time step or the geometry goes gets very noisy
     phi[] = (d[] + d[-1] + d[0,-1] + d[-1,-1] +
              d[0,0,-1] + d[-1,0,-1] + d[0,-1,-1] + d[-1,-1,-1])/8.;
   fractions (phi, f, s);
@@ -109,7 +86,6 @@ event glider (i++) {
     foreach_dimension() 
         u.x[] = f[]*vc.x + (1. - f[])*u.x[];
   boundary ((scalar *){f,u});			// include f as a boundary ?
- 
 }
 
 
@@ -135,7 +111,6 @@ event snapshot (t = 0; t += 1; t <= 25) {
   boundary ({pid,vyz});
   
   output_gfs (file = name ); 
- 
 }
 
 /* adaptive grid size*/
@@ -163,7 +138,7 @@ event timeseries(i++) {
     monitor(i,t,{p,u}, 0, MONIT, 0,"opposite_L5.dat");
     monitor(i,t,{p,u}, MONIT, -MONIT, 0,"outlet_L5.dat");
     monitor(i,t,{p,u}, 0, 0, MONIT,"above_L5.dat");
-    monitor(i,t,{p,u}, MONIT, 0, 0,"inlet_front_L5.dat");
+    monitor(i,t,{p,u}, -MONIT, 0, 0,"inlet_front_L5.dat");
      
 //added in 0.005 (5mm in x) to probe monitoring points so they are not on the surface of the geometry
     monitor(i,t,{p,u}, -0.79281, 0.02224, 0.18038,"probe1.dat");
@@ -210,7 +185,7 @@ event timeseries(i++) {
 
 } 
 
-
+/*
 event force (i++) {
   
   vector dux[]; vector duy[]; vector duz[];
@@ -250,7 +225,7 @@ foreach(){
   double Strainxx=0; double Strainyx=0; double Strainzx=0;
   double Strainxy=0; double Strainyy=0; double Strainzy=0;
   double Strainxz=0; double Strainyz=0; double Strainzz=0;
-  /*double Faero=0;*/
+  //double Faero=0;
   foreach(reduction(+:Faerox) reduction(+:Faeroy) reduction(+:Faeroz)){
 
     if (f[] > 1e-4 && f[] < 1. - 1e-4) {
@@ -314,19 +289,7 @@ foreach(){
   fclose(ldrag);
 	
 }
- 
-/* not working with mpi yet
-event timeseries(i++) {
-   fprintf(ferr,"monitoring point\n");
-    FILE * fp = fopen ("test.dat", "w");
-     fprintf (fp, " time " " iteration " " pressure " " u comp" " v comp " " w comp\n" );
-     float p_point = interpolate (p  , 1.4, 1 , 1);
-     float u_point = interpolate (u.x, 1.4, 1 , 1);
-     float v_point = interpolate (u.y, 1.4, 1 , 1);
-     float w_point = interpolate (u.z, 1.4, 1 , 1);
-     fprintf (fp, " %f %d  %f %f %f %f \n", t, i, p_point, u_point,v_point, w_point );
-     fprintf (ferr, " %f %d  %f %f %f %f \n", t, i, p_point, u_point,v_point, w_point );
-}*/
+*/ 
 
 event runtime (i += 1) {
   mpi_all_reduce (perf.t, MPI_DOUBLE, MPI_MAX);
