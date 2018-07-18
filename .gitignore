@@ -2,3 +2,4 @@
 *.dat
 c_old/
 restart_old/
+*.gfs
