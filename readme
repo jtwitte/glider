@@ -3,9 +3,10 @@
 
 3)	qcc -Wall -O2 glider.c -o glider_init -lm
 4)	./glider_init
-5)	qcc -source -D_MPI=1 glider.c
-6)	mpicc -Wall -std=c99 -O2 -D_MPI=1 _glider.c -o glider -lm
+5)      cp restart-0 restart
+6)	qcc -source -D_MPI=1 glider.c
+7)	mpicc -Wall -std=c99 -O2 -D_MPI=1 _glider.c -o glider -lm
 
-7)	mpirun -np 16 ./glider
+8)	mpirun -np 16 ./glider
 
-8)	rm -f *.dat && rm -f snapshot*	
+9)	rm -f *.dat && rm -f snapshot*	

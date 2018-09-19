@@ -64,11 +64,12 @@ event init (t = 0) {
 
   while (adapt_wavelet ({d}, (double[]){1e-4}, LEVEL).nf);
  
-  foreach()
+  foreach() {
   u.x[] = 0.33;
   u.y[] = 0;
   u.z[] = 0;
-                }
+            }
+  }
   else {
   fprintf(ferr,"restarting\n"); 
   }
@@ -96,7 +97,7 @@ event glider (i++) {
 }
 
 
-event snapshot (t = 0; t += 1; t <= 25) {
+event snapshot (t = 0; t += 1; t <= 30) {
  
   fprintf(ferr,"saving file\n");
   //dump ( file = "restart" );
@@ -118,7 +119,7 @@ event snapshot (t = 0; t += 1; t <= 25) {
   boundary ({pid,vyz});
   
   char name[80];
-  sprintf (name, "dump-%g", t);
+  sprintf (name, "restart-%g", t);
   dump (file = name);
 
   //output_gfs (file = name ); 
@@ -151,14 +152,14 @@ event timeseries(i++) {
     monitor(i,t,{p,u}, 0, 0, MONIT,"above_L5.dat");
     monitor(i,t,{p,u}, -MONIT, 0, 0,"inlet_front_L5.dat");
    
-    monitor(i,t,{p,u}, -0.79281, MON, 0.18038,"probe1_free.dat");
-    monitor(i,t,{p,u}, -0.79268, MON, 0.20597,"probe2_free.dat");
-    monitor(i,t,{p,u}, -0.78936, MON, 0.21854,"probe3_free.dat");
-    monitor(i,t,{p,u}, -0.75805, MON, 0.20447,"probe4_free.dat");
-    monitor(i,t,{p,u}, -0.74699, MON, 0.16585,"probe5_free.dat");
+    monitor(i,t,{p,u}, -0.79281, MONIT, 0.18038,"probe1_free.dat");
+    monitor(i,t,{p,u}, -0.79268, MONIT, 0.20597,"probe2_free.dat");
+    monitor(i,t,{p,u}, -0.78936, MONIT, 0.21854,"probe3_free.dat");
+    monitor(i,t,{p,u}, -0.75805, MONIT, 0.20447,"probe4_free.dat");
+    monitor(i,t,{p,u}, -0.74699, MONIT, 0.16585,"probe5_free.dat");
 
-    monitor(i,t,{p,u},  1.0851,  MON, -0.00768,"oxygen_free.dat");
-    monitor(i,t,{p,u}, -0.03914, MON, -0.05431,"ctd_free.dat");
+    monitor(i,t,{p,u},  1.0851,  MONIT, -0.00768,"oxygen_free.dat");
+    monitor(i,t,{p,u}, -0.03914, MONIT, -0.05431,"ctd_free.dat");
      
 //added in 0.005 (5mm in x) to probe monitoring points so they are not on the surface of the geometry
     monitor(i,t,{p,u}, -0.79281, 0.02224, 0.18038,"probe1.dat");
