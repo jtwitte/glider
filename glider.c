@@ -129,7 +129,8 @@ event snapshot (t = 0; t += 1; t <= 30) {
 
 event adapt (i++) {
 	astats st= adapt_wavelet ((scalar *){u}, (double[]){uemax,uemax,uemax},LEVEL);
-  	fprintf (ferr, "  flow field # grid %ld cells, refined %d cells, coarsened %d cells\n", grid->tn, st.nf, st.nc);
+  	unrefine (x > 6);
+	fprintf (ferr, "  flow field # grid %ld cells, refined %d cells, coarsened %d cells\n", grid->tn, st.nf, st.nc);
 }
 
 /* print logfile */
