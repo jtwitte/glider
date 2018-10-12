@@ -55,7 +55,8 @@ event init (t = 0) {
 
   // coord * p = input_stl (fopen ("sphere.stl","r"));
   // coord * p = input_stl (fopen ("omg_glider_final_2_5degree_trans_flip_binary.stl", "r"));
-  coord * p = input_stl (fopen ("omg_glider_probe_final_2_5degree_trans_flip_binary.stl","r"));
+  // coord * p = input_stl (fopen ("omg_glider_probe_final_2_5degree_trans_flip_binary.stl","r"));
+  coord * p = input_stl (fopen ("omg_glider_probe_final_0_degree_trans_flip_binary.stl","r"));
 
   init_grid (8);
   size (WIDTH);
