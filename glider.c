@@ -4,97 +4,104 @@
 #include "distance.h"
 #include "utils.h"
 #include "lambda2.h"
-//#include "tracer.h"
 
-scalar f[], d[];		 // make a global field
-//scalar trac[];
-vertex scalar phi[];
-face vector s[];
 
-int    LEVEL   = 12; 		// define grid resolution
-double uemax   = 0.01; 		// define mesh adaption criterion
-double MU0 = 1.08e-3; 		// dynamic viscosity
-double maxruntime = 700; 	// just less than 12 hours in minutes
-double WIDTH = 5;
-double MONIT = 5/2. - 0.05;
+void fraction_from_stl (scalar f, FILE * fg, int LEVEL){
+	coord * p = input_stl (fopen ("omg_glider_probe_final_0_degree_trans_flip_binary.stl","r"));
 
-//scalar * tracers = {trac};
+  	// coord * p = input_stl (fopen ("sphere.stl","r"));
+  	// coord * p = input_stl (fopen ("omg_glider_final_2_5degree_trans_flip_binary.stl", "r"));
+  	// coord * p = input_stl (fopen ("omg_glider_probe_final_2_5degree_trans_flip_binary.stl","r"));
+	// COMPUTING BOUNDING BOX NOT NECESSARY AS WHOLE DOMAIN IS BOX?
+	scalar d[];
+	distance (d, p);
+	while (adapt_wavelet ({d}, (double[]){1e-4}, LEVEL).nf); // no lower boundary?
+        
+	vertex scalar phi[];
+	face vector s[];	// face vector needed?
+	foreach_vertex() 		//recalculate the fraction field at each time step or the geometry goes gets very noisy
+		phi[] = (d[] + d[-1] + d[0,-1] + d[-1,-1] +
+                	d[0,0,-1] + d[-1,0,-1] + d[0,-1,-1] + d[-1,-1,-1])/8.;
+	fractions (phi, f, s);
+}
 
-/* boundary conditions for velocity with unit velocity on the left-hand side and outflow on the right-hand side  */
+// CONSTANTS
+
+int    LEVEL 	  = 12; 		// define grid resolution
+double MU0 	  = 1.08e-3; 		// dynamic viscosity
+double maxruntime = 700; 		// just less than 12 hours in minutes
+double WIDTH 	  = 5;
+double MONIT 	  = 5/2. - 0.05;
+
+scalar f[];		 		// make a global field
+
+int main () {
+	init_grid(8);
+	size(WIDTH);
+	origin(-L0/2., -L0/2., -L0/2.);
+	/* kinametic viscosity of water 1.05x10^-6 m^2 s^-1 at 20 degrees*/
+	/* kinametic viscosity of water 1.83x10^-6 m^2 s^-1 at 0 degrees*/
+	/* dynamic viscosity (MU0) of water 1.08 × 10−3 Pa s at 20 degrees*/
+	/* dynamic viscosity (MU0) of water 1.88 × 10−3 Pa s at 0 degrees*/
+	/* http://www.kayelaby.npl.co.uk/general_physics/2_7/2_7_9.html */
+	/* actual Re = l*V/v , 1.8*0.33./1.05x10^-6 = 5.65714e5 */
+	/* use v= 1.8*1./ 5.65714e5 = 3.1818*10^-6 */
+	/* use MU0 = v * density = 3.1818*10^-6 * 1024 = 3.258e-3 */
+	const face vector muc[] = { 1.05e-6 , 1.05e-6, 1.05e-6 };		// What is this doing here?
+	mu = muc;
+
+// specifying that f is volume fraction field? for (scalar s in {tangaroa,f0}) s.refine = s.prolongation = fraction_refine;
+
+	run();
+}
+
+// BOUNDARY CONDITIONS
 
 u.n[left]  = dirichlet(0.33);
 p[left]    = neumann(0.);
 pf[left]   = neumann(0.);
-//trac[left]  = dirichlet(y<0);
-//trac[left]  = dirichlet(0.33);
 
 u.n[right] = neumann(0.);
 p[right]   = dirichlet(0.);
 pf[right]  = dirichlet(0.);
 
-int main () {
-/* kinametic viscosity of water 1.05x10^-6 m^2 s^-1 at 20 degrees*/
-/* kinametic viscosity of water 1.83x10^-6 m^2 s^-1 at 0 degrees*/
-/* dynamic viscosity (MU0) of water 1.08 × 10−3 Pa s at 20 degrees*/
-/* dynamic viscosity (MU0) of water 1.88 × 10−3 Pa s at 0 degrees*/
-/* http://www.kayelaby.npl.co.uk/general_physics/2_7/2_7_9.html */
-/* actual Re = l*V/v , 1.8*0.33./1.05x10^-6 = 5.65714e5 */
-/* use v= 1.8*1./ 5.65714e5 = 3.1818*10^-6 */
-/* use MU0 = v * density = 3.1818*10^-6 * 1024 = 3.258e-3 */
-  const face vector muc[] = { 1.05e-6 , 1.05e-6, 1.05e-6 };
-  mu = muc;
-
-  run();
-}
+// f[back] = 0; // Boundary condition for the solid tracer?
 
 /* setup of geometry and domain*/
 
 event init (t = 0) {
   if (!restore (file = "restart")) {
-  fprintf(ferr,"initialising\n");
+	fprintf(ferr,"initialising\n");
 
-  // coord * p = input_stl (fopen ("sphere.stl","r"));
-  // coord * p = input_stl (fopen ("omg_glider_final_2_5degree_trans_flip_binary.stl", "r"));
-  // coord * p = input_stl (fopen ("omg_glider_probe_final_2_5degree_trans_flip_binary.stl","r"));
-  coord * p = input_stl (fopen ("omg_glider_probe_final_0_degree_trans_flip_binary.stl","r"));
+  	FILE * fp = fopen ("omg_glider_probe_final_0_degree_trans_flip_binary.stl", "r");
+  	fraction_from_stl (f, fp, LEVEL);
+  	fclose (fp);
 
-  init_grid (8);
-  size (WIDTH);
-  origin( -L0/2, -L0/2., -L0/2. );
-  distance (d, p);
-
-  while (adapt_wavelet ({d}, (double[]){1e-4}, LEVEL).nf);
- 
-  foreach() {
-  u.x[] = 0.33;
-  u.y[] = 0;
-  u.z[] = 0;
-            }
+  	foreach() {
+	u.x[] = 0.33;
+	u.y[] = 0;
+	u.z[] = 0;
+	}
+	boundary ((scalar *){f,u});
   }
   else {
   fprintf(ferr,"restarting\n"); 
   }
 }
  
-/* calculating ? */
+/* calculating velocity and pressure */
  
 event glider (i++) {
   fprintf(ferr,"define zero velocity inside geometry\n"); 
-  coord vc = {0.,0.,0.};			// the velocity of the glider
 
-  foreach_vertex() 				//recalculate the fraction field at each time step or the geometry goes gets very noisy
-    phi[] = (d[] + d[-1] + d[0,-1] + d[-1,-1] +
-             d[0,0,-1] + d[-1,0,-1] + d[0,-1,-1] + d[-1,-1,-1])/8.;
-  fractions (phi, f, s);
-  
   foreach() 
     foreach_dimension() {
-        u.x[] = f[]*vc.x + (1. - f[])*u.x[];
-        u.y[] = f[]*vc.y + (1. - f[])*u.y[];
-        u.z[] = f[]*vc.x + (1. - f[])*u.z[];
-        p[]   = f[]*vc.x + (1. - f[])*p[];
+        u.x[] = (1. - f[])*u.x[];
+        u.y[] = (1. - f[])*u.y[];
+        u.z[] = (1. - f[])*u.z[];
+        p[]   = (1. - f[])*p[];
         }	
-  boundary ((scalar *){f,u});			// include f as a boundary ?
+  boundary ((scalar *){f,u});
 }
 
 
@@ -105,6 +112,9 @@ event snapshot (t = 0; t += 1; t <= 30) {
 
   //char name[80];
   //sprintf (name, "snapshot-%g-%d.gfs", t,LEVEL);
+ 
+  char name[80];
+  sprintf (name, "restart-%g", t);
  
   scalar pid[];
   scalar l2[], vyz[] ;
@@ -117,10 +127,8 @@ event snapshot (t = 0; t += 1; t <= 30) {
   lambda2 (u, l2);
   vorticity (u, omega);
 
-  boundary ({pid,vyz});
+  boundary ({pid,vyz});		//boundary necessary here?
   
-  char name[80];
-  sprintf (name, "restart-%g", t);
   dump (file = name);
 
   //output_gfs (file = name ); 
@@ -129,8 +137,10 @@ event snapshot (t = 0; t += 1; t <= 30) {
 /* adaptive grid size*/
 
 event adapt (i++) {
-	astats st= adapt_wavelet ((scalar *){u}, (double[]){uemax,uemax,uemax},LEVEL);
-  	unrefine (x > 2.2);
+  double uemax 	  = 0.01; 		// define mesh adaption criterion
+
+  astats st = adapt_wavelet ((scalar *){u}, (double[]){uemax,uemax,uemax},LEVEL); //add lower limit and assign to astats st?
+  	unrefine (x > 2.45);
 	fprintf (ferr, "  flow field # grid %ld cells, refined %d cells, coarsened %d cells\n", grid->tn, st.nf, st.nc);
 }
 
@@ -321,5 +331,3 @@ event runtime (i += 1) {
     return 1; 					// exit
   }
 }
-
-
