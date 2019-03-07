@@ -7,7 +7,7 @@
 
 
 void fraction_from_stl (scalar f, FILE * fg, int LEVEL){
-	coord * p = input_stl (fopen ("omg_glider_probe_final_0_degree_trans_flip_binary.stl","r"));
+	coord * p = input_stl (fopen ("omg_glider_probe_final_2_5degree_trans_flip_binary.stl","r"));
 
   	// coord * p = input_stl (fopen ("sphere.stl","r"));
   	// coord * p = input_stl (fopen ("omg_glider_final_2_5degree_trans_flip_binary.stl", "r"));
@@ -73,7 +73,7 @@ event init (t = 0) {
   if (!restore (file = "restart")) {
 	fprintf(ferr,"initialising\n");
 
-  	FILE * fp = fopen ("omg_glider_probe_final_0_degree_trans_flip_binary.stl", "r");
+  	FILE * fp = fopen ("omg_glider_probe_final_2_5degree_trans_flip_binary.stl", "r");
   	fraction_from_stl (f, fp, LEVEL);
   	fclose (fp);
 
